@@ -1,7 +1,7 @@
 const Contact = require("./schemas/contact");
 const User = require("./schemas/user");
 
-const getUser = (email) => {
+const getUserByEmail = (email) => {
     return User.findOne({ email });
 };
 
@@ -34,7 +34,7 @@ const removeContact = (id) => {
 };
 
 module.exports = {
-    getUser,
+    getUserByEmail,
     updateUserToken,
     getAllContacts,
     getContactById,
