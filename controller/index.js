@@ -23,7 +23,7 @@ const auth = (req, res, next) => {
 
 const registration = async (req, res, next) => {
     const { email, password } = req.body;
-    const user = await service.getUser(email);
+    const user = await service.getUserByEmail(email);
 
     if (user) {
         return res.status(409).json({
@@ -51,7 +51,7 @@ const registration = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     const { email, password } = req.body;
-    const user = await service.getUser(email);
+    const user = await service.getUserByEmail(email);
 
     if (!user || !user.validPassword(password)) {
         return res.json({
