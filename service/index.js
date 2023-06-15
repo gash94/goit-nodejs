@@ -1,4 +1,13 @@
 const Contact = require("./schemas/contact");
+const User = require("./schemas/user");
+
+const getUser = (email) => {
+    return User.findOne({ email });
+};
+
+const updateUserToken = (id, fields) => {
+    return User.updateOne({ _id: id }, { $set: fields }, { new: true });
+};
 
 const getAllContacts = async () => {
     return Contact.find();
@@ -25,6 +34,8 @@ const removeContact = (id) => {
 };
 
 module.exports = {
+    getUser,
+    updateUserToken,
     getAllContacts,
     getContactById,
     createContact,
