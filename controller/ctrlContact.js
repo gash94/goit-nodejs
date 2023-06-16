@@ -1,82 +1,4 @@
 const service = require("../service");
-const jwt = require("jsonwebtoken");
-const passport = require("passport");
-const User = require("../service/schemas/user");
-
-require("dotenv").config();
-const SECRET = process.env.SECRET;
-
-const auth = (req, res, next) => {
-    passport.authenticate("jwt", { session: false }, (err, user) => {
-        if (!user || err) {
-            return res.status(401).json({
-                status: "error",
-                code: 401,
-                message: "Unauthorized",
-                data: "Unauthorized",
-            });
-        }
-        req.user = user;
-        next();
-    })(req, res, next);
-};
-
-const registration = async (req, res, next) => {
-    const { email, password } = req.body;
-    const user = await service.getUserByEmail(email);
-
-    if (user) {
-        return res.status(409).json({
-            status: "error",
-            code: 400,
-            message: "Email is already in use",
-            data: "Conflict",
-        });
-    }
-    try {
-        const newUser = new User({ email });
-        newUser.setPassword(password);
-        await newUser.save();
-        res.json({
-            status: "success",
-            code: 201,
-            data: {
-                message: "Register complete!",
-            },
-        });
-    } catch (err) {
-        next(err);
-    }
-};
-
-const login = async (req, res, next) => {
-    const { email, password } = req.body;
-    const user = await service.getUserByEmail(email);
-
-    if (!user || !user.validPassword(password)) {
-        return res.json({
-            status: "error",
-            code: 400,
-            data: "Bad request",
-            message: "Incorrect login/password",
-        });
-    }
-
-    const payload = {
-        id: user.id,
-    };
-
-    const token = jwt.sign(payload, SECRET, { expiresIn: "1h" });
-    const updateToken = await service.updateUserToken(user.id, { token });
-    return res.json({
-        status: "success",
-        code: 200,
-        data: {
-            token,
-            updateToken,
-        },
-    });
-};
 
 const get = async (req, res, next) => {
     try {
@@ -211,9 +133,6 @@ const remove = async (req, res, next) => {
 };
 
 module.exports = {
-    registration,
-    login,
-    auth,
     get,
     getById,
     create,
