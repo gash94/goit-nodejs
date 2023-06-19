@@ -4,8 +4,8 @@ const User = require("./schemas/user");
 const getUserByEmail = (email) => {
     return User.findOne({ email });
 };
-const getUserById = async (id) => {
-    return await User.findOne({ id });
+const getUserById = async (_id) => {
+    return await User.findOne({ _id });
 };
 const updateUserToken = (id, fields) => {
     return User.updateOne({ _id: id }, { $set: fields }, { new: true });
