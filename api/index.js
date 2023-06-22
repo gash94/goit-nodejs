@@ -24,4 +24,6 @@ router.get("/users/logout", ctrlAuth.auth, ctrlUser.logout);
 
 router.get("/users/current", ctrlAuth.auth, ctrlUser.current);
 
+router.patch("/users/avatars", ctrlAuth.auth, ctrlUser.avatar);
+
 module.exports = router;
