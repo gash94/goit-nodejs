@@ -8,6 +8,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+require("./config/config-passport");
+
 const routerApi = require("./api");
 app.use("/api", routerApi);
 
@@ -15,7 +17,10 @@ app.use((_, res, __) => {
     res.status(404).json({
         status: "error",
         code: 404,
-        message: "Use api on routes: /api/contacts",
+        message: `Use api on routes: 
+        /api/signup - registration user {email, password}
+        /api/login - login {email, password}
+        /api/contacts - get message if user is authenticated`,
         data: "Not found",
     });
 });
