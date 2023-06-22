@@ -1,10 +1,16 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const path = require("path");
+const fs = require("fs").promises;
+const uploadDir = path.join(process.cwd(), "uploads");
+const storeImage = path.join(process.cwd(), "images");
+const multer = require("multer");
 
 require("dotenv").config();
 
 const app = express();
+app.use(express.static("public"));
 app.use(express.json());
 app.use(cors());
 
@@ -35,6 +41,52 @@ app.use((err, _, res, __) => {
     });
 });
 
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+    limits: {
+        fileSize: 1048576,
+    },
+});
+
+const upload = multer({
+    storage: storage,
+});
+
+app.post("/upload", upload.single("picture"), async (req, res, next) => {
+    const { description } = req.body;
+    const { path: temporaryName, originalname } = req.file;
+    const fileName = path.join(storeImage, originalname);
+    try {
+        await fs.rename(temporaryName, fileName);
+    } catch (err) {
+        await fs.unlink(temporaryName);
+        return next(err);
+    }
+    res.json({
+        description,
+        message: "File uploaded successfully",
+        status: 200,
+    });
+});
+
+const isAccessible = (path) => {
+    return fs
+        .access(path)
+        .then(() => true)
+        .catch(() => false);
+};
+
+const createFolderIsNotExist = async (folder) => {
+    if (!(await isAccessible(folder))) {
+        await fs.mkdir(folder);
+    }
+};
+
 const PORT = process.env.PORT || 3000;
 const uriDb = process.env.DB_HOST;
 
@@ -46,6 +98,8 @@ const connection = mongoose.connect(uriDb, {
 connection
     .then(() => {
         app.listen(PORT, function () {
+            createFolderIsNotExist(uploadDir);
+            createFolderIsNotExist(storeImage);
             console.log(
                 `Database connection successful. Use our API on port: ${PORT}`
             );
