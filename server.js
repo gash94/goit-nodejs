@@ -1,31 +1,32 @@
+require("dotenv").config();
+require("./config/config-passport");
 const express = require("express");
+const logger = require("morgan");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const fs = require("fs/promises");
 const path = require("path");
-const fs = require("fs").promises;
-const uploadDir = path.join(process.cwd(), "uploads");
-const storeImage = path.join(process.cwd(), "images");
-const multer = require("multer");
-
-require("dotenv").config();
 
 const app = express();
-app.use(express.static("public"));
+
 app.use(express.json());
 app.use(cors());
 
-require("./config/config-passport");
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+app.use(logger(formatsLogger));
 
 const routerApi = require("./api");
 app.use("/api", routerApi);
+app.use("/avatars", express.static(path.join(__dirname, "./public/avatars")));
+app.use(express.static("public"));
 
 app.use((_, res, __) => {
     res.status(404).json({
         status: "error",
         code: 404,
         message: `Use api on routes: 
-        /api/signup - registration user {email, password}
-        /api/login - login {email, password}
+        /api/users/signup - registration user {email, password}
+        /api/users/login - login {email, password}
         /api/contacts - get message if user is authenticated`,
         data: "Not found",
     });
@@ -41,52 +42,6 @@ app.use((err, _, res, __) => {
     });
 });
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    },
-    limits: {
-        fileSize: 1048576,
-    },
-});
-
-const upload = multer({
-    storage: storage,
-});
-
-app.post("/upload", upload.single("picture"), async (req, res, next) => {
-    const { description } = req.body;
-    const { path: temporaryName, originalname } = req.file;
-    const fileName = path.join(storeImage, originalname);
-    try {
-        await fs.rename(temporaryName, fileName);
-    } catch (err) {
-        await fs.unlink(temporaryName);
-        return next(err);
-    }
-    res.json({
-        description,
-        message: "File uploaded successfully",
-        status: 200,
-    });
-});
-
-const isAccessible = (path) => {
-    return fs
-        .access(path)
-        .then(() => true)
-        .catch(() => false);
-};
-
-const createFolderIsNotExist = async (folder) => {
-    if (!(await isAccessible(folder))) {
-        await fs.mkdir(folder);
-    }
-};
-
 const PORT = process.env.PORT || 3000;
 const uriDb = process.env.DB_HOST;
 
@@ -95,11 +50,25 @@ const connection = mongoose.connect(uriDb, {
     useUnifiedTopology: true,
 });
 
+const isExist = (path) => {
+    return fs
+        .access(path)
+        .then(() => true)
+        .catch(() => false);
+};
+
+const createDir = async (path) => {
+    if (!(await isExist(path))) {
+        await fs.mkdir(path);
+    }
+};
+
 connection
     .then(() => {
         app.listen(PORT, function () {
-            createFolderIsNotExist(uploadDir);
-            createFolderIsNotExist(storeImage);
+            createDir("./tmp");
+            createDir("./public");
+            createDir("./public/avatars");
             console.log(
                 `Database connection successful. Use our API on port: ${PORT}`
             );
