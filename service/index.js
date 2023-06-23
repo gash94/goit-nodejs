@@ -12,11 +12,7 @@ const updateUserToken = (id, fields) => {
 };
 
 const updateAvatar = async (email, avatarURL) => {
-    return await User.findOneAndUpdate(
-        { email },
-        { $set: avatarURL },
-        { new: true }
-    );
+    return await User.findOneAndUpdate({ email }, { avatarURL }, { new: true });
 };
 
 const getAllContacts = async () => {
