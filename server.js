@@ -27,7 +27,9 @@ app.use((_, res, __) => {
         message: `Use api on routes: 
         /api/users/signup - registration user {email, password}
         /api/users/login - login {email, password}
-        /api/contacts - get message if user is authenticated`,
+        /api/users/avatars - change avatars
+        /api/contacts - get message if user is authenticated
+        `,
         data: "Not found",
     });
 });
