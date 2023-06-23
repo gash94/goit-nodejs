@@ -2,7 +2,7 @@ const service = require("../service");
 const jwt = require("jsonwebtoken");
 const User = require("../service/schemas/user");
 const gravatar = require("gravatar");
-const multer = require("multer");
+
 const path = require("path");
 const storeAvatar = path.join(process.cwd(), "tmp");
 const fs = require("fs/promises");
@@ -11,20 +11,6 @@ const Jimp = require("jimp");
 require("dotenv").config();
 
 const SECRET = process.env.SECRET;
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, storeAvatar);
-    },
-    filename: (req, file, cb) => {
-        cb(null, file.originalname);
-    },
-    limits: {
-        fileSize: 1048576,
-    },
-});
-
-const upload = multer({ storage });
 
 const registration = async (req, res, next) => {
     const { email, password } = req.body;
@@ -121,7 +107,7 @@ const current = async (req, res, next) => {
     }
 };
 
-const avatar = upload.single("avatar", async (req, res, next) => {
+const setAvatar = async (req, res, next) => {
     try {
         const { email } = req.user;
         const { path: tempName, originalname } = req.file;
@@ -144,17 +130,20 @@ const avatar = upload.single("avatar", async (req, res, next) => {
         const cleanAvatarURL = avatarURL.replace(/\\/g, "/");
 
         const user = await service.updateAvatar(email, cleanAvatarURL);
-        res.status(200).json(user);
+        res.status(200).json({
+            data: user,
+            message: "File loaded successfully",
+        });
     } catch (error) {
         next(error);
         return res.status(500).json({ message: "Server error" });
     }
-});
+};
 
 module.exports = {
     registration,
     login,
     logout,
     current,
-    avatar,
+    setAvatar,
 };
