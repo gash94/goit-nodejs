@@ -11,6 +11,10 @@ const updateUserToken = (id, fields) => {
     return User.updateOne({ _id: id }, { $set: fields }, { new: true });
 };
 
+const updateAvatar = async (email, avatarURL) => {
+    return await User.findOneAndUpdate({ email }, { avatarURL }, { new: true });
+};
+
 const getAllContacts = async () => {
     return await Contact.find();
 };
@@ -39,6 +43,7 @@ module.exports = {
     getUserByEmail,
     getUserById,
     updateUserToken,
+    updateAvatar,
     getAllContacts,
     getContactById,
     createContact,
