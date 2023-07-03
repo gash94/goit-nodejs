@@ -39,6 +39,14 @@ const removeContact = (id) => {
     return Contact.findByIdAndRemove({ _id: id });
 };
 
+const verifyUser = (verificationToken) => {
+    return User.findOneAndUpdate(
+        { verificationToken },
+        { verify: true, verificationToken: null },
+        { new: true }
+    );
+};
+
 module.exports = {
     getUserByEmail,
     getUserById,
@@ -49,4 +57,5 @@ module.exports = {
     createContact,
     updateContact,
     removeContact,
+    verifyUser,
 };
