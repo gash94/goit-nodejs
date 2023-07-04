@@ -89,6 +89,14 @@ const login = async (req, res, next) => {
             message: "Incorrect login/password",
         });
     }
+    if (!user.verify) {
+        return res.json({
+            status: "error",
+            code: 400,
+            data: "Bad request",
+            message: "Email is not verified",
+        });
+    }
 
     const payload = {
         id: user.id,
